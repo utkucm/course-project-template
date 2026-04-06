@@ -17,7 +17,7 @@ LATEX_DOCS_LECTURE_NOTES_DIR  := docs/
 TMP_ZIP                       := repo.zip
 TMP_DIR                       := repo-tmp
 
-.PHONY: help sync lint format typecheck check run fetch-assignments pre-commit-install clean
+.PHONY: help sync lint format typecheck run fetch-assignments pre-commit-install clean
 
 help:
 	@echo "Usage: make <target>"
@@ -34,25 +34,22 @@ help:
 	@echo "  clean             Remove output files"
 
 sync:
-	uv sync
+	cd code && uv sync
 
 lint:
-	uv run ruff check $(SRC_DIR)
+	cd code && uv run ruff check $(SRC_DIR)
 
 format:
-	uv run ruff format $(SRC_DIR)
+	cd code && uv run ruff format $(SRC_DIR)
 
 typecheck:
-	uv run ty check $(SRC_DIR)
-
-check: lint typecheck
-	uv run ruff format --check $(SRC_DIR)
+	cd code && uv run ty check $(SRC_DIR)
 
 pre-commit-install:
-	uv run pre-commit install
+	cd code && uv run pre-commit install
 
 run:
-	$(PY) $(SRC_DIR)/main.py
+	cd code && $(PY) $(SRC_DIR)/main.py
 
 fetch-assignments:
 ifndef NAME
