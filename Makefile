@@ -1,3 +1,4 @@
+CODE_DIR                   ?= code
 PY                         := uv run python
 SRC_DIR                    := src
 DATA_DIR                   := data
@@ -7,6 +8,7 @@ OUTPUT_DIR                 := output
 FIGS_DIR                   := output/figures
 TABLES_DIR                 := output/tables
 SCRIPTS_DIR                := scripts
+NOTEBOOKS_DIR              := notebooks
 
 LATEX_TEMPLATE_REPO_URL    := https://github.com/utkucm/latex_templates
 BRANCH                     := main
@@ -36,30 +38,30 @@ help:
 	@echo "  fetch-lecture-notes                   Fetch LaTeX lecture notes template"
 
 sync:
-	cd code && uv sync
+	cd $(CODE_DIR) && uv sync
 
 lint:
-	cd code && uv run ruff check $(SRC_DIR)
+	cd $(CODE_DIR) && uv run ruff check $(SRC_DIR)
 
 format:
-	cd code && uv run ruff format $(SRC_DIR)
+	cd $(CODE_DIR) && uv run ruff format $(SRC_DIR)
 
 typecheck:
-	cd code && uv run ty check $(SRC_DIR)
+	cd $(CODE_DIR) && uv run ty check $(SRC_DIR)
 
 run:
-	cd code && $(PY) $(SRC_DIR)/main.py
+	cd $(CODE_DIR) && $(PY) $(SRC_DIR)/main.py
 
 check:
-	cd code && uv run ruff check $(SRC_DIR)
-	cd code && uv run ruff format --check $(SRC_DIR)
-	cd code && uv run ty check $(SRC_DIR)
+	cd $(CODE_DIR) && uv run ruff check $(SRC_DIR)
+	cd $(CODE_DIR) && uv run ruff format --check $(SRC_DIR)
+	cd $(CODE_DIR) && uv run ty check $(SRC_DIR)
 
 jupyter:
-	cd code && uv run jupyter lab
+	cd $(CODE_DIR) && uv run jupyter lab
 
 clean:
-	find code/$(OUTPUT_DIR) -type f ! -name '.gitkeep' -delete
+	find $(CODE_DIR)/$(OUTPUT_DIR) -type f ! -name '.gitkeep' -delete
 
 # Usage: $(call fetch-latex-template,<repo-subdir>,<destination-path>)
 define fetch-latex-template
@@ -87,12 +89,15 @@ endif
 	         $(CODE_DIR)/$(DATA_PROCESSED_DIR) \
 	         $(CODE_DIR)/$(FIGS_DIR) \
 	         $(CODE_DIR)/$(TABLES_DIR) \
-	         $(CODE_DIR)/$(SCRIPTS_DIR)
+	         $(CODE_DIR)/$(SCRIPTS_DIR) \
+			 $(CODE_DIR)/$(NOTEBOOKS_DIR)
+
 	touch $(CODE_DIR)/$(SRC_DIR)/__init__.py \
 	      $(CODE_DIR)/$(SRC_DIR)/main.py \
 	      $(CODE_DIR)/$(SCRIPTS_DIR)/__init__.py \
 	      $(CODE_DIR)/$(DATA_RAW_DIR)/.gitkeep \
-	      $(CODE_DIR)/$(DATA_PROCESSED_DIR)/.gitkeep
+	      $(CODE_DIR)/$(DATA_PROCESSED_DIR)/.gitkeep \
+		  $(CODE_DIR)/$(NOTEBOOKS_DIR)/.gitkeep
 	cd $(CODE_DIR) && uv init --bare .
 	cd $(CODE_DIR) && uv add $(DEPS)
 	cd $(CODE_DIR) && uv add --dev $(DEV_DEPS)
