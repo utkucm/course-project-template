@@ -21,7 +21,7 @@ DEPS := numpy scipy sympy pandas polars matplotlib seaborn \
         scikit-learn statsmodels linearmodels openpyxl jupyterlab
 DEV_DEPS := ruff ty
 
-.PHONY: help sync lint format typecheck run check jupyter clean create-code-project fetch-assignments fetch-lecture-notes fetch-presentation
+.PHONY: help sync lint format typecheck run check jupyter clean create-code-project fetch-assignments fetch-lecture-notes fetch-presentation watch-docs sync-docs
 
 help:
 	@echo "Usage: make <target>"
@@ -39,6 +39,8 @@ help:
 	@echo "  fetch-assignments NAME=<name>         Fetch LaTeX assignment template"
 	@echo "  fetch-lecture-notes                   Fetch LaTeX lecture notes template"
 	@echo "  fetch-presentation NAME=<name>        Fetch LaTeX beamer presentation template"
+	@echo "  sync-docs                             Sync PDFs from docs/ to Dropbox once"
+	@echo "  watch-docs                            Watch docs/ and sync PDFs to Dropbox on change"
 
 sync:
 	cd $(CODE_DIR) && uv sync
@@ -115,6 +117,25 @@ endif
 
 fetch-lecture-notes:
 	$(call fetch-latex-template,lecture_notes,$(LATEX_DOCS_LECTURE_NOTES_DIR)/lecture_notes)
+
+sync-docs:
+	@if [ -z "$(DROPBOX_DOCS_DIR)" ]; then \
+		echo "Error: DROPBOX_DOCS_DIR is not set. Define it in .env"; exit 1; \
+	fi
+	@DEST=$$(echo "$(DROPBOX_DOCS_DIR)" | sed "s|^~|$$HOME|"); \
+		mkdir -p "$$DEST" && \
+		rsync -a --include='*/' --include='*.pdf' --exclude='*' docs/ "$$DEST/"
+
+watch-docs:
+	@if [ -z "$(DROPBOX_DOCS_DIR)" ]; then \
+		echo "Error: DROPBOX_DOCS_DIR is not set. Define it in .env"; exit 1; \
+	fi
+	@which fswatch > /dev/null 2>&1 || { echo "Error: fswatch not installed. Run: brew install fswatch"; exit 1; }
+	@echo "Watching docs/ for PDF changes..."
+	@DEST=$$(echo "$(DROPBOX_DOCS_DIR)" | sed "s|^~|$$HOME|"); \
+		mkdir -p "$$DEST" && \
+		fswatch -o --include='\.pdf$$' --exclude='.*' -r docs/ | \
+		xargs -n1 -I{} rsync -a --include='*/' --include='*.pdf' --exclude='*' docs/ "$$DEST/"
 
 fetch-beamer-presentation:
 ifndef NAME
