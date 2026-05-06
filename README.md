@@ -5,7 +5,7 @@ A structured template for organizing course-related work, combining a Python dat
 ## Directory Structure
 
 ```
-course-project-template/
+project-template/
 ├── <code-dir>/             # Python project created with make create-code-project
 │   ├── src/                # Source code
 │   │   └── main.py
